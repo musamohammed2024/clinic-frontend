@@ -1,0 +1,131 @@
+ /* =========================
+   GENERAL CONTAINER
+========================= */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* =========================
+   DARK MODE
+========================= */
+.dark {
+  background-color: #121212;
+  color: white;
+  min-height: 100vh;
+}
+
+/* =========================
+   FORM LAYOUT
+========================= */
+.contact-form {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.contact-form input,
+.contact-form select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.contact-form button {
+  grid-column: span 4;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.contact-form button:hover {
+  background-color: #0056b3;
+}
+
+/* =========================
+   TABLE (EXCEL STYLE)
+========================= */
+.contact-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/* HEADER */
+.contact-table th {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+/* CELLS */
+.contact-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  white-space: nowrap;
+}
+
+/* ROW HOVER */
+.contact-table tr:hover {
+  background-color: #f2f2f2;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+button {
+  cursor: pointer;
+}
+
+.contact-table button {
+  margin-right: 5px;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 4px;
+}
+
+.contact-table button:first-child {
+  background-color: #28a745;
+  color: white;
+}
+
+.contact-table button:last-child {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* =========================
+   DARK MODE TABLE
+========================= */
+.dark .contact-table th {
+  background-color: #1f6feb;
+}
+
+.dark .contact-table td {
+  border: 1px solid #333;
+  color: white;
+}
+
+.dark .contact-table tr:hover {
+  background-color: #2a2a2a;
+}
+
+/* =========================
+   DARK MODE INPUTS
+========================= */
+.dark input,
+.dark select {
+  background-color: #2a2a2a;
+  color: white;
+  border: 1px solid #444;
+}
