@@ -1,21 +1,25 @@
- import axios from "axios";
-import { useState, useEffect } from "react";
+import axios from "axios";
+import { useState, useEffect, useMemo } from "react";
+
 import ContactForm from "./components/ContactForm";
 import ContactList from "./components/ContactList";
 import SearchBar from "./components/SearchBar";
 import ExportButton from "./components/ExportButton";
 import ImportButton from "./components/ImportButton";
 
-function App() {
-  // ✅ LIVE BACKEND URL (Render)
-  const API_URL =
-    "https://clinic-backend-0i4l.onrender.com/api/contacts";
+// ✅ API URL (moved outside component)
+const API_URL = "https://clinic-backend-0i4l.onrender.com/api/contacts";
 
+function App() {
   const [contacts, setContacts] = useState([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [editingContact, setEditingContact] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+
+  // ✅ NEW: loading + error states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // =========================
   // LOAD DATA
@@ -41,12 +45,17 @@ function App() {
   // =========================
   const fetchContacts = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       const res = await axios.get(API_URL);
       console.log("🔥 API RESPONSE:", res.data);
 
       setContacts(res.data.data || []);
-    } catch (error) {
-      console.log("GET ERROR:", error.message);
+    } catch (err) {
+      setError(err.message || "Failed to fetch contacts");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,8 +66,8 @@ function App() {
     try {
       await axios.post(API_URL, contact);
       fetchContacts();
-    } catch (error) {
-      console.log("POST ERROR:", error.message);
+    } catch (err) {
+      console.log("POST ERROR:", err.message);
     }
   };
 
@@ -68,11 +77,10 @@ function App() {
   const updateContact = async (contact) => {
     try {
       await axios.put(`${API_URL}/${contact._id}`, contact);
-
       setEditingContact(null);
       fetchContacts();
-    } catch (error) {
-      console.log("PUT ERROR:", error.message);
+    } catch (err) {
+      console.log("PUT ERROR:", err.message);
     }
   };
 
@@ -83,34 +91,42 @@ function App() {
     try {
       await axios.delete(`${API_URL}/${id}`);
       fetchContacts();
-    } catch (error) {
-      console.log("DELETE ERROR:", error.message);
+    } catch (err) {
+      console.log("DELETE ERROR:", err.message);
     }
   };
 
   // =========================
-  // FILTER
+  // FILTER (OPTIMIZED)
   // =========================
-  const filteredContacts = contacts.filter((c) => {
-    const matchesSearch =
-      c.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone?.toLowerCase().includes(search.toLowerCase()) ||
-      c.email?.toLowerCase().includes(search.toLowerCase());
+  const filteredContacts = useMemo(() => {
+    return contacts.filter((c) => {
+      const matchesSearch =
+        (c.fullName || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.phone || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.email || "").toLowerCase().includes(search.toLowerCase());
 
-    const matchesCategory =
-      categoryFilter === "All" || c.currentStatus === categoryFilter;
+      const matchesCategory =
+        categoryFilter === "All" || c.currentStatus === categoryFilter;
 
-    return matchesSearch && matchesCategory;
-  });
+      return matchesSearch && matchesCategory;
+    });
+  }, [contacts, search, categoryFilter]);
 
   // =========================
   // UI
   // =========================
   return (
-    <div className={darkMode ? "container dark" : "container"}>
+    <div className={`container ${darkMode ? "dark" : ""}`}>
       <h1>Laboratory Staff List</h1>
 
       <h3>Total Staff: {contacts.length}</h3>
+
+      {/* ERROR MESSAGE */}
+      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+
+      {/* LOADING */}
+      {loading && <p>Loading contacts...</p>}
 
       {/* BUTTONS */}
       <div style={{ marginBottom: "15px" }}>
@@ -144,11 +160,15 @@ function App() {
       />
 
       {/* LIST */}
-      <ContactList
-        contacts={filteredContacts}
-        editContact={setEditingContact}
-        deleteContact={deleteContact}
-      />
+      {filteredContacts.length === 0 && !loading ? (
+        <p>No contacts found.</p>
+      ) : (
+        <ContactList
+          contacts={filteredContacts}
+          editContact={setEditingContact}
+          deleteContact={deleteContact}
+        />
+      )}
     </div>
   );
 }
