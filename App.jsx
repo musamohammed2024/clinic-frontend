@@ -1,4 +1,4 @@
- import axios from "axios";
+import axios from "axios";
 import { useState, useEffect } from "react";
 import ContactForm from "./components/ContactForm";
 import ContactList from "./components/ContactList";
@@ -7,9 +7,8 @@ import ExportButton from "./components/ExportButton";
 import ImportButton from "./components/ImportButton";
 
 function App() {
-  // ✅ LIVE BACKEND URL (Render)
-  const API_URL =
-    "https://clinic-backend-0i4l.onrender.com/api/contacts";
+  // Backend API
+  const API_URL = "https://clinic-backend-0i4l.onrender.com/api/contacts";
 
   const [contacts, setContacts] = useState([]);
   const [search, setSearch] = useState("");
@@ -18,7 +17,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
 
   // =========================
-  // LOAD DATA
+  // LOAD CONTACTS
   // =========================
   useEffect(() => {
     fetchContacts();
@@ -42,11 +41,16 @@ function App() {
   const fetchContacts = async () => {
     try {
       const res = await axios.get(API_URL);
-      console.log("🔥 API RESPONSE:", res.data);
+
+      console.log("GET SUCCESS:", res.data);
 
       setContacts(res.data.data || []);
     } catch (error) {
-      console.log("GET ERROR:", error.message);
+      console.error("GET ERROR:", error);
+
+      if (error.response) {
+        console.log(error.response.data);
+      }
     }
   };
 
@@ -55,10 +59,27 @@ function App() {
   // =========================
   const addContact = async (contact) => {
     try {
-      await axios.post(API_URL, contact);
-      fetchContacts();
+      console.log("Sending contact:", contact);
+
+      const res = await axios.post(API_URL, contact);
+
+      console.log("POST SUCCESS:", res.data);
+
+      await fetchContacts();
     } catch (error) {
-      console.log("POST ERROR:", error.message);
+      console.error("POST ERROR:", error);
+
+      if (error.response) {
+        console.log("Status:", error.response.status);
+        console.log("Response:", error.response.data);
+
+        alert(
+          error.response.data.message ||
+            "Server rejected the request."
+        );
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -67,12 +88,27 @@ function App() {
   // =========================
   const updateContact = async (contact) => {
     try {
-      await axios.put(`${API_URL}/${contact._id}`, contact);
+      const res = await axios.put(
+        `${API_URL}/${contact._id}`,
+        contact
+      );
+
+      console.log("UPDATE SUCCESS:", res.data);
 
       setEditingContact(null);
-      fetchContacts();
+
+      await fetchContacts();
     } catch (error) {
-      console.log("PUT ERROR:", error.message);
+      console.error("UPDATE ERROR:", error);
+
+      if (error.response) {
+        console.log(error.response.data);
+
+        alert(
+          error.response.data.message ||
+            "Failed to update contact."
+        );
+      }
     }
   };
 
@@ -81,15 +117,27 @@ function App() {
   // =========================
   const deleteContact = async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
-      fetchContacts();
+      const res = await axios.delete(`${API_URL}/${id}`);
+
+      console.log("DELETE SUCCESS:", res.data);
+
+      await fetchContacts();
     } catch (error) {
-      console.log("DELETE ERROR:", error.message);
+      console.error("DELETE ERROR:", error);
+
+      if (error.response) {
+        console.log(error.response.data);
+
+        alert(
+          error.response.data.message ||
+            "Failed to delete contact."
+        );
+      }
     }
   };
 
   // =========================
-  // FILTER
+  // FILTER CONTACTS
   // =========================
   const filteredContacts = contacts.filter((c) => {
     const matchesSearch =
@@ -98,7 +146,8 @@ function App() {
       c.email?.toLowerCase().includes(search.toLowerCase());
 
     const matchesCategory =
-      categoryFilter === "All" || c.currentStatus === categoryFilter;
+      categoryFilter === "All" ||
+      c.currentStatus === categoryFilter;
 
     return matchesSearch && matchesCategory;
   });
@@ -112,9 +161,9 @@ function App() {
 
       <h3>Total Staff: {contacts.length}</h3>
 
-      {/* BUTTONS */}
       <div style={{ marginBottom: "15px" }}>
         <ExportButton contacts={contacts} />
+
         <ImportButton setContacts={setContacts} />
 
         <button onClick={() => setDarkMode(!darkMode)}>
@@ -122,13 +171,16 @@ function App() {
         </button>
       </div>
 
-      {/* SEARCH */}
-      <SearchBar search={search} setSearch={setSearch} />
+      <SearchBar
+        search={search}
+        setSearch={setSearch}
+      />
 
-      {/* FILTER */}
       <select
         value={categoryFilter}
-        onChange={(e) => setCategoryFilter(e.target.value)}
+        onChange={(e) =>
+          setCategoryFilter(e.target.value)
+        }
       >
         <option value="All">All</option>
         <option value="Active">Active</option>
@@ -136,14 +188,12 @@ function App() {
         <option value="Inactive">Inactive</option>
       </select>
 
-      {/* FORM */}
       <ContactForm
         addContact={addContact}
         editingContact={editingContact}
         updateContact={updateContact}
       />
 
-      {/* LIST */}
       <ContactList
         contacts={filteredContacts}
         editContact={setEditingContact}
